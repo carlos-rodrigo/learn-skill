@@ -207,11 +207,3 @@ Or in `.opencode/hooks/Stop.md`:
 Run /learn to capture session feedback before closing.
 ```
 
-## Migration from LEARNINGS.md
-
-If you have an existing `LEARNINGS.md` file:
-1. Review the learnings in that file
-2. Manually copy relevant ones to AGENTS.md or CLAUDE.md
-3. Delete or archive the LEARNINGS.md file
-
-The `/learn` skill will no longer create or update LEARNINGS.md.

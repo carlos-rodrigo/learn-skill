@@ -149,13 +149,6 @@ Learnings are tagged with categories:
 - `TESTING` - Test strategy, verification
 - `TOOLING` - Tool usage, commands
 
-## Migration from LEARNINGS.md
-
-If you have an existing `LEARNINGS.md` file:
-1. Review the learnings in that file
-2. Manually copy relevant ones to AGENTS.md or CLAUDE.md
-3. Delete or archive the LEARNINGS.md file
-
 ## License
 
 MIT
