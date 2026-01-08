@@ -1,10 +1,10 @@
 ---
-description: Extract learnings from session feedback and update CLAUDE.md/AGENTS.md
+description: Extract learnings from session feedback and update AGENTS.md or CLAUDE.md
 ---
 
 # Learn Command
 
-Analyze the current session conversation, extract user feedback and corrections, classify them by impact level, and persist valuable learnings directly to CLAUDE.md and AGENTS.md so they are automatically loaded by agents.
+Analyze the current session conversation, extract user feedback and corrections, classify them by impact level, and persist valuable learnings to the appropriate file based on the environment.
 
 ## Trigger Modes
 
@@ -13,7 +13,18 @@ Analyze the current session conversation, extract user feedback and corrections,
 
 ## Workflow
 
-### Step 1: Read Current Session
+### Step 1: Detect Environment
+
+Check environment variable to determine target file:
+
+| Environment | Detection | Target File |
+|-------------|-----------|-------------|
+| **OpenCode** | `$OPENCODE=1` | `AGENTS.md` |
+| **Claude Code** | `$OPENCODE` not set | `CLAUDE.md` |
+
+Both files are automatically loaded by their respective agents at session start.
+
+### Step 2: Read Current Session
 
 Use `session_read` to get the full conversation history of the current session.
 
@@ -21,14 +32,14 @@ Use `session_read` to get the full conversation history of the current session.
 session_read(session_id=current, include_todos=true)
 ```
 
-### Step 2: Read Existing Context
+### Step 3: Read Existing Context
 
 Read these files to understand current guidelines (if they exist):
-- `./AGENTS.md` - Project-specific agent guidelines (for architecture/process learnings)
-- `./CLAUDE.md` - Project-specific context (for style/tooling learnings)
+- `./AGENTS.md` - Project-specific agent guidelines
+- `./CLAUDE.md` - Project-specific context
 - `~/.claude/CLAUDE.md` - Global user preferences (read-only, for context)
 
-### Step 3: Analyze for Feedback Patterns
+### Step 4: Analyze for Feedback Patterns
 
 Scan the conversation for:
 
@@ -38,26 +49,13 @@ Scan the conversation for:
 4. **Repeated requests**: Same feedback given multiple times indicates importance
 5. **Style corrections**: "Remove these comments", "Match the existing component style"
 
-### Step 4: Classify Feedback
+### Step 5: Classify Feedback
 
 | Level | Criteria | Examples | Persistence |
 |-------|----------|----------|-------------|
 | **HIGH** | Process/workflow changes, repeated corrections, explicit rules | "Always run tests first", "Never commit without verification", "Use TDD" | Always persist |
 | **MEDIUM** | Style/consistency preferences, architecture patterns | "No comments in code", "Follow existing UX patterns", "Maintain component structure" | Persist with confirmation |
 | **LOW** | One-time tactical fixes, context-specific corrections | "Fix this typo", "Use hippo color here", "Align this button" | Do NOT persist (too specific) |
-
-### Step 5: Determine Target File
-
-Route learnings to the appropriate file based on category:
-
-| Category | Target File | Rationale |
-|----------|-------------|-----------|
-| `PROCESS` | `AGENTS.md` | Workflow rules for agent behavior |
-| `ARCHITECTURE` | `AGENTS.md` | Design patterns and structure decisions |
-| `TESTING` | `AGENTS.md` | Test strategy and verification requirements |
-| `CODE_STYLE` | `CLAUDE.md` | Code formatting, comments, naming conventions |
-| `UI_UX` | `CLAUDE.md` | Frontend patterns, design system rules |
-| `TOOLING` | `CLAUDE.md` | Tool usage, commands, environment |
 
 ### Step 6: Format Learnings
 
@@ -66,6 +64,14 @@ Format learnings as concise, actionable bullet points:
 ```markdown
 - [CATEGORY] Brief actionable rule (e.g., "Always run tests before committing")
 ```
+
+Categories:
+- `PROCESS` - Workflow and methodology
+- `CODE_STYLE` - Code formatting, comments, naming
+- `ARCHITECTURE` - Design patterns, structure
+- `UI_UX` - Frontend patterns, design system
+- `TESTING` - Test strategy, verification
+- `TOOLING` - Tool usage, commands
 
 For learnings that need context, use:
 
@@ -76,7 +82,7 @@ For learnings that need context, use:
 ### Step 7: Check for Duplicates
 
 Before adding a learning:
-1. Read the target file (CLAUDE.md or AGENTS.md)
+1. Read the target file (AGENTS.md or CLAUDE.md based on environment)
 2. Check if a similar learning already exists
 3. If duplicate: Skip or update existing entry
 4. If new: Append to the Learnings section
@@ -85,27 +91,14 @@ Before adding a learning:
 
 For MEDIUM level learnings:
 1. Show the proposed additions
-2. Show which file will be updated (CLAUDE.md or AGENTS.md)
+2. Show which file will be updated
 3. Ask: "Apply these learnings? (y/n)"
 
 HIGH level learnings are applied automatically (no confirmation).
 
-### Step 9: Update Target Files
+### Step 9: Update Target File
 
-#### For CLAUDE.md
-
-If the file doesn't have a Learnings section, append:
-
-```markdown
-
-## Learnings
-
-<!-- Auto-captured from sessions by /learn -->
-```
-
-Then append new learnings under this section.
-
-#### For AGENTS.md
+#### For OpenCode (AGENTS.md)
 
 If the file doesn't exist, create it with:
 
@@ -121,32 +114,33 @@ If it exists but has no Learnings section, append the section.
 
 Then append new learnings under the Learnings section.
 
-### Step 10: Report Summary
+#### For Claude Code (CLAUDE.md)
 
-Output a brief summary:
-- Number of learnings captured (by level and category)
-- Files updated (CLAUDE.md and/or AGENTS.md)
-- Any skipped duplicates
-
-## File Structure Examples
-
-### CLAUDE.md with Learnings
+If the file doesn't exist, create it with:
 
 ```markdown
 # Project Context
 
-- not try to run dev server for frontend
-- Use pnpm instead of npm
-
 ## Learnings
 
 <!-- Auto-captured from sessions by /learn -->
-- [CODE_STYLE] No comments in code unless explaining complex algorithms
-- [UI_UX] Follow the design system in DESIGN_SYSTEM.md for all UI components
-- [TOOLING] Run `pnpm typecheck` before committing TypeScript changes
 ```
 
-### AGENTS.md with Learnings
+If it exists but has no Learnings section, append the section.
+
+Then append new learnings under the Learnings section.
+
+### Step 10: Report Summary
+
+Output a brief summary:
+- Environment detected (OpenCode or Claude Code)
+- Number of learnings captured (by level)
+- File updated (AGENTS.md or CLAUDE.md)
+- Any skipped duplicates
+
+## File Structure Examples
+
+### AGENTS.md (OpenCode)
 
 ```markdown
 # Agent Guidelines
@@ -158,7 +152,24 @@ This project uses specific patterns and processes.
 <!-- Auto-captured from sessions by /learn -->
 - [PROCESS] Always run tests before committing
 - [ARCHITECTURE] Use repository pattern for data access
-- [TESTING] Write integration tests for API endpoints, unit tests for utilities
+- [CODE_STYLE] No comments unless explaining complex algorithms
+- [TOOLING] Run `pnpm typecheck` before committing
+```
+
+### CLAUDE.md (Claude Code)
+
+```markdown
+# Project Context
+
+- Use pnpm instead of npm
+- Do not run dev server
+
+## Learnings
+
+<!-- Auto-captured from sessions by /learn -->
+- [PROCESS] Always run tests before committing
+- [CODE_STYLE] No comments in code unless explaining complex algorithms
+- [UI_UX] Follow the design system in DESIGN_SYSTEM.md
 ```
 
 ## Rules
@@ -167,15 +178,15 @@ This project uses specific patterns and processes.
 2. **Always persist HIGH level feedback** - important process rules
 3. **Deduplicate** - don't add learnings that already exist
 4. **Be concise** - learnings should be actionable bullet points, not paragraphs
-5. **Route correctly** - process/architecture to AGENTS.md, style/tooling to CLAUDE.md
-6. **Create sections if missing** - add Learnings section to existing files
-7. **Preserve existing content** - never overwrite, only append to Learnings section
-8. **Never modify ~/.claude/CLAUDE.md** - global file is read-only
+5. **Create sections if missing** - add Learnings section to existing files
+6. **Preserve existing content** - never overwrite, only append to Learnings section
+7. **Never modify ~/.claude/CLAUDE.md** - global file is read-only
+8. **Respect environment** - OpenCode → AGENTS.md, Claude Code → CLAUDE.md
 
 ## Why This Approach
 
-- **CLAUDE.md** is automatically loaded by Claude at session start
-- **AGENTS.md** is automatically loaded by Claude for agent guidelines
+- **AGENTS.md** is automatically loaded by OpenCode at session start
+- **CLAUDE.md** is automatically loaded by Claude Code at session start
 - No separate file that agents might forget to read
 - Learnings become part of the agent's permanent context
 
@@ -200,7 +211,7 @@ Run /learn to capture session feedback before closing.
 
 If you have an existing `LEARNINGS.md` file:
 1. Review the learnings in that file
-2. Manually copy relevant ones to CLAUDE.md or AGENTS.md
+2. Manually copy relevant ones to AGENTS.md or CLAUDE.md
 3. Delete or archive the LEARNINGS.md file
 
 The `/learn` skill will no longer create or update LEARNINGS.md.
