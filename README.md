@@ -31,20 +31,26 @@ Both files are automatically loaded by their respective agents at session start,
 
 ## Installation
 
-### Quick Install
+### Quick Install (OpenCode)
 
 ```bash
-# Create commands directory if it doesn't exist
+# Create directories if they don't exist
 mkdir -p ~/.config/opencode/command
+mkdir -p ~/.config/opencode/hooks
 
 # Download the skill
 curl -o ~/.config/opencode/command/learn.md \
   https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/learn.md
+
+# Download the hook (optional - enables auto-learning at session end)
+curl -o ~/.config/opencode/hooks/Stop.md \
+  https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/hooks/Stop.md
 ```
 
 ### Manual Install
 
-Copy `learn.md` to `~/.config/opencode/command/learn.md`
+1. Copy `learn.md` to `~/.config/opencode/command/learn.md`
+2. (Optional) Copy `hooks/Stop.md` to `~/.config/opencode/hooks/Stop.md`
 
 ## Usage
 
@@ -58,7 +64,9 @@ Type `/learn` at any point during a session:
 
 ### Automatic (End-of-Session Hook)
 
-Add to your `oh-my-opencode.json`:
+If you installed the hook file, `/learn` runs automatically when you end a session.
+
+Alternatively, add to your `oh-my-opencode.json`:
 
 ```json
 {
