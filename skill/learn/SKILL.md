@@ -1,15 +1,17 @@
 ---
+name: learn
 description: Extract learnings from session feedback and update AGENTS.md or CLAUDE.md
 ---
 
-# Learn Command
+# Learn Skill
 
 Analyze the current session conversation, extract user feedback and corrections, classify them by impact level, and persist valuable learnings to the appropriate file based on the environment.
 
-## Trigger Modes
+## When to Use This Skill
 
-- **Manual**: User invokes `/learn` at any time
-- **Hook**: Automatically triggered at session end (Stop hook)
+- At the end of a session to capture learnings
+- When the user explicitly asks to save learnings
+- When invoked via Stop hook automatically
 
 ## Workflow
 
@@ -138,40 +140,6 @@ Output a brief summary:
 - File updated (AGENTS.md or CLAUDE.md)
 - Any skipped duplicates
 
-## File Structure Examples
-
-### AGENTS.md (OpenCode)
-
-```markdown
-# Agent Guidelines
-
-This project uses specific patterns and processes.
-
-## Learnings
-
-<!-- Auto-captured from sessions by /learn -->
-- [PROCESS] Always run tests before committing
-- [ARCHITECTURE] Use repository pattern for data access
-- [CODE_STYLE] No comments unless explaining complex algorithms
-- [TOOLING] Run `pnpm typecheck` before committing
-```
-
-### CLAUDE.md (Claude Code)
-
-```markdown
-# Project Context
-
-- Use pnpm instead of npm
-- Do not run dev server
-
-## Learnings
-
-<!-- Auto-captured from sessions by /learn -->
-- [PROCESS] Always run tests before committing
-- [CODE_STYLE] No comments in code unless explaining complex algorithms
-- [UI_UX] Follow the design system in DESIGN_SYSTEM.md
-```
-
 ## Rules
 
 1. **Never persist LOW level feedback** - too context-specific
@@ -181,29 +149,4 @@ This project uses specific patterns and processes.
 5. **Create sections if missing** - add Learnings section to existing files
 6. **Preserve existing content** - never overwrite, only append to Learnings section
 7. **Never modify ~/.claude/CLAUDE.md** - global file is read-only
-8. **Respect environment** - OpenCode → AGENTS.md, Claude Code → CLAUDE.md
-
-## Why This Approach
-
-- **AGENTS.md** is automatically loaded by OpenCode at session start
-- **CLAUDE.md** is automatically loaded by Claude Code at session start
-- No separate file that agents might forget to read
-- Learnings become part of the agent's permanent context
-
-## Hook Configuration
-
-To enable automatic learning at session end, configure in `oh-my-opencode.json`:
-
-```json
-{
-  "hooks": {
-    "Stop": ["/learn"]
-  }
-}
-```
-
-Or in `.opencode/hooks/Stop.md`:
-```markdown
-Run /learn to capture session feedback before closing.
-```
-
+8. **Respect environment** - OpenCode -> AGENTS.md, Claude Code -> CLAUDE.md
