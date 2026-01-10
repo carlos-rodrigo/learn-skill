@@ -32,33 +32,39 @@ Both files are automatically loaded by their respective agents at session start,
 
 ## Installation
 
-### Quick Install (oh-my-opencode / OpenCode)
+### Global Installation
+
+Install for all projects on your machine:
 
 ```bash
 # Install command (for /learn slash command)
-mkdir -p ~/.config/opencode/command
-curl -o ~/.config/opencode/command/learn.md \
-  https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/command/learn.md
-
-# Install skill (for agent programmatic access)
-mkdir -p ~/.config/opencode/skill/learn
-curl -o ~/.config/opencode/skill/learn/SKILL.md \
-  https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/skill/learn/SKILL.md
-```
-
-### Claude Code Compatible Install
-
-```bash
-# Install command
 mkdir -p ~/.claude/commands
 curl -o ~/.claude/commands/learn.md \
   https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/command/learn.md
 
-# Install skill
+# Install skill (for agent programmatic access)
 mkdir -p ~/.claude/skills/learn
 curl -o ~/.claude/skills/learn/SKILL.md \
   https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/skill/learn/SKILL.md
 ```
+
+### Local Installation
+
+Install for a specific project only:
+
+```bash
+# Install command (for /learn slash command)
+mkdir -p .claude/commands
+curl -o .claude/commands/learn.md \
+  https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/command/learn.md
+
+# Install skill (for agent programmatic access)
+mkdir -p .claude/skills/learn
+curl -o .claude/skills/learn/SKILL.md \
+  https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/skill/learn/SKILL.md
+```
+
+> **Compatibility:** Also works with OpenCode and oh-my-opencode, which load `~/.claude/` paths by default.
 
 ### Enable Auto-Learning (Stop Hook)
 
@@ -155,18 +161,18 @@ Session Conversation
 
 ### Command vs Skill
 
-| Type | Purpose | OpenCode Path | Claude Code Path |
-|------|---------|---------------|------------------|
-| **Command** | `/learn` slash command | `~/.config/opencode/command/learn.md` | `~/.claude/commands/learn.md` |
-| **Skill** | Agent programmatic access | `~/.config/opencode/skill/learn/SKILL.md` | `~/.claude/skills/learn/SKILL.md` |
-| **Hook** | Auto-run at session end | `~/.claude/settings.json` | `~/.claude/settings.json` |
+| Type | Purpose | Global Path | Local Path |
+|------|---------|-------------|------------|
+| **Command** | `/learn` slash command | `~/.claude/commands/learn.md` | `.claude/commands/learn.md` |
+| **Skill** | Agent programmatic access | `~/.claude/skills/learn/SKILL.md` | `.claude/skills/learn/SKILL.md` |
+| **Hook** | Auto-run at session end | `~/.claude/settings.json` | - |
 
 ### Output Files
 
 | Environment | Target File |
 |-------------|-------------|
-| OpenCode | `./AGENTS.md` |
 | Claude Code | `./CLAUDE.md` |
+| OpenCode (`$OPENCODE=1`) | `./AGENTS.md` |
 
 ## Output Format
 
