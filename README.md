@@ -25,7 +25,8 @@ Both files are automatically loaded by their respective agents at session start,
 - **Smart classification** into HIGH/MEDIUM/LOW priority levels
 - **Environment-aware** - writes to the right file for your tool
 - **Automatic loading** - learnings are in files agents read by default
-- **Hook support** - can run automatically at session end
+- **Auto mode** - runs silently via hook, no user interaction needed
+- **Hook support** - runs automatically at session end in background
 - **Deduplication** - won't add learnings that already exist
 - **Preserve existing content** - only appends to Learnings section
 - **Dual access** - available as both `/learn` command and `learn` skill
@@ -68,9 +69,18 @@ curl -o .claude/skills/learn/SKILL.md \
 
 ### Enable Auto-Learning (Stop Hook)
 
-To automatically run `/learn` at the end of each session, add the Stop hook to your settings.
+To automatically run `/learn` at the end of each session, install the hook script and configure settings.
 
-**Edit `~/.claude/settings.json`** (create if it doesn't exist):
+**1. Install the hook script:**
+
+```bash
+mkdir -p ~/.claude/skills/learn
+curl -o ~/.claude/skills/learn/learn.sh \
+  https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/skill/learn/learn.sh
+chmod +x ~/.claude/skills/learn/learn.sh
+```
+
+**2. Edit `~/.claude/settings.json`** (create if it doesn't exist):
 
 ```json
 {
@@ -81,7 +91,7 @@ To automatically run `/learn` at the end of each session, add the Stop hook to y
         "hooks": [
           {
             "type": "command",
-            "command": "/learn"
+            "command": "~/.claude/skills/learn/learn.sh"
           }
         ]
       }
@@ -90,11 +100,11 @@ To automatically run `/learn` at the end of each session, add the Stop hook to y
 }
 ```
 
-Or merge with existing settings if you already have hooks configured.
+The hook runs in background and won't block your session. Logs are written to `~/.claude/learn.log`.
 
 ## Usage
 
-### Manual Invocation
+### Manual Invocation (Interactive)
 
 Type `/learn` at any point during a session:
 
@@ -102,9 +112,19 @@ Type `/learn` at any point during a session:
 /learn
 ```
 
+This runs in interactive mode - you'll be asked to confirm MEDIUM-level learnings.
+
+### Auto Mode (No Confirmation)
+
+```
+/learn --auto
+```
+
+Applies both HIGH and MEDIUM learnings automatically without confirmation. Used by hooks.
+
 ### Automatic (End-of-Session Hook)
 
-If you configured the Stop hook, `/learn` runs automatically when your session ends.
+If you configured the Stop hook, `learn.sh` runs automatically when your session ends. It runs in background with `--auto` flag, so no user interaction is needed.
 
 ### Programmatic (Agent Access)
 
@@ -153,7 +173,7 @@ Session Conversation
         v
 +----------------------------------+
 |  Append to Learnings section     |
-|  (with confirmation if MEDIUM)   |
+|  (auto in --auto mode)           |
 +----------------------------------+
 ```
 
@@ -165,6 +185,7 @@ Session Conversation
 |------|---------|-------------|------------|
 | **Command** | `/learn` slash command | `~/.claude/commands/learn.md` | `.claude/commands/learn.md` |
 | **Skill** | Agent programmatic access | `~/.claude/skills/learn/SKILL.md` | `.claude/skills/learn/SKILL.md` |
+| **Script** | Hook wrapper (background) | `~/.claude/skills/learn/learn.sh` | - |
 | **Hook** | Auto-run at session end | `~/.claude/settings.json` | - |
 
 ### Output Files
@@ -220,8 +241,8 @@ learn-skill/
 │   └── learn.md              # Slash command definition
 ├── skill/
 │   └── learn/
-│       └── SKILL.md          # Skill definition for agents
-├── settings.example.json     # Example Stop hook configuration
+│       ├── SKILL.md          # Skill definition for agents
+│       └── learn.sh          # Hook script (runs in background)
 └── README.md
 ```
 

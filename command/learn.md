@@ -6,10 +6,17 @@ description: Extract learnings from session feedback and update AGENTS.md or CLA
 
 Analyze the current session conversation, extract user feedback and corrections, classify them by impact level, and persist valuable learnings to the appropriate file based on the environment.
 
+## Modes
+
+| Mode | Invocation | Behavior |
+|------|------------|----------|
+| **Auto** | `/learn --auto` | No confirmation, auto-apply HIGH + MEDIUM learnings silently |
+| **Interactive** | `/learn` | Confirm MEDIUM learnings before applying |
+
 ## Trigger Modes
 
-- **Manual**: User invokes `/learn` at any time
-- **Hook**: Automatically triggered at session end (Stop hook)
+- **Manual**: User invokes `/learn` at any time (interactive)
+- **Hook**: Automatically triggered at session end via `learn.sh` (auto mode)
 
 ## Workflow
 
@@ -87,14 +94,17 @@ Before adding a learning:
 3. If duplicate: Skip or update existing entry
 4. If new: Append to the Learnings section
 
-### Step 8: Present Diff (if confirmation needed)
+### Step 8: Apply Learnings
 
-For MEDIUM level learnings:
-1. Show the proposed additions
-2. Show which file will be updated
-3. Ask: "Apply these learnings? (y/n)"
+**Auto mode (`--auto` flag):**
+- Apply both HIGH and MEDIUM learnings automatically
+- No user confirmation required
+- Minimal output (just summary line)
+- Used by hooks for background processing
 
-HIGH level learnings are applied automatically (no confirmation).
+**Interactive mode (no flag):**
+- HIGH learnings: Apply automatically
+- MEDIUM learnings: Show proposed additions and ask "Apply these learnings? (y/n)"
 
 ### Step 9: Update Target File
 
@@ -176,12 +186,14 @@ This project uses specific patterns and processes.
 
 1. **Never persist LOW level feedback** - too context-specific
 2. **Always persist HIGH level feedback** - important process rules
-3. **Deduplicate** - don't add learnings that already exist
-4. **Be concise** - learnings should be actionable bullet points, not paragraphs
-5. **Create sections if missing** - add Learnings section to existing files
-6. **Preserve existing content** - never overwrite, only append to Learnings section
-7. **Never modify ~/.claude/CLAUDE.md** - global file is read-only
-8. **Respect environment** - OpenCode -> AGENTS.md, Claude Code -> CLAUDE.md
+3. **Auto mode applies MEDIUM too** - when `--auto` flag is present, apply without confirmation
+4. **Deduplicate** - don't add learnings that already exist
+5. **Be concise** - learnings should be actionable bullet points, not paragraphs
+6. **Create sections if missing** - add Learnings section to existing files
+7. **Preserve existing content** - never overwrite, only append to Learnings section
+8. **Never modify ~/.claude/CLAUDE.md** - global file is read-only
+9. **Respect environment** - OpenCode -> AGENTS.md, Claude Code -> CLAUDE.md
+10. **No output in auto mode** - when running via hook, only output single summary line
 
 ## Why This Approach
 
