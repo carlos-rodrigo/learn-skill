@@ -25,8 +25,7 @@ Both files are automatically loaded by their respective agents at session start,
 - **Smart classification** into HIGH/MEDIUM/LOW priority levels
 - **Environment-aware** - writes to the right file for your tool
 - **Automatic loading** - learnings are in files agents read by default
-- **Auto mode** - runs silently via hook, no user interaction needed
-- **Hook support** - runs automatically at session end in background
+- **Session-end hook** - run a transcript parser at session end
 - **Deduplication** - won't add learnings that already exist
 - **Preserve existing content** - only appends to Learnings section
 - **Dual access** - available as both `/learn` command and `learn` skill
@@ -67,41 +66,6 @@ curl -o .claude/skills/learn/SKILL.md \
 
 > **Compatibility:** Also works with OpenCode and oh-my-opencode, which load `~/.claude/` paths by default.
 
-### Enable Auto-Learning (Stop Hook)
-
-To automatically run `/learn` at the end of each session, install the hook script and configure settings.
-
-**1. Install the hook script:**
-
-```bash
-mkdir -p ~/.claude/skills/learn
-curl -o ~/.claude/skills/learn/learn.sh \
-  https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/skill/learn/learn.sh
-chmod +x ~/.claude/skills/learn/learn.sh
-```
-
-**2. Edit `~/.claude/settings.json`** (create if it doesn't exist):
-
-```json
-{
-  "hooks": {
-    "Stop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/skills/learn/learn.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-The hook runs in background and won't block your session. Logs are written to `~/.claude/learn.log`.
-
 ## Usage
 
 ### Manual Invocation (Interactive)
@@ -114,17 +78,56 @@ Type `/learn` at any point during a session:
 
 This runs in interactive mode - you'll be asked to confirm MEDIUM-level learnings.
 
-### Auto Mode (No Confirmation)
+### Session-End Hook (Transcript Heuristics)
 
+Use a session-end hook to run the transcript parser without calling Claude. The hook receives `transcript_path` via stdin, and the script extracts learnings from recent user messages. It writes to the project `AGENTS.md`/`CLAUDE.md` based on the hook `cwd`.
+
+**Install the hook script:**
+
+```bash
+mkdir -p ~/.claude/skills/learn
+curl -o ~/.claude/skills/learn/learn-hook.js \
+  https://raw.githubusercontent.com/carlos-rodrigo/learn-skill/main/skill/learn/learn-hook.js
 ```
-/learn --auto
+
+**Claude Code (`SessionEnd`)**
+
+```json
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/skills/learn/learn-hook.js"
+          }
+        ]
+      }
+    ]
+  }
+}
 ```
 
-Applies both HIGH and MEDIUM learnings automatically without confirmation. Used by hooks.
+**OpenCode / oh-my-opencode (`Stop`)**
 
-### Automatic (End-of-Session Hook)
-
-If you configured the Stop hook, `learn.sh` runs automatically when your session ends. It runs in background with `--auto` flag, so no user interaction is needed.
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/skills/learn/learn-hook.js"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 ### Programmatic (Agent Access)
 
@@ -173,7 +176,6 @@ Session Conversation
         v
 +----------------------------------+
 |  Append to Learnings section     |
-|  (auto in --auto mode)           |
 +----------------------------------+
 ```
 
@@ -185,8 +187,7 @@ Session Conversation
 |------|---------|-------------|------------|
 | **Command** | `/learn` slash command | `~/.claude/commands/learn.md` | `.claude/commands/learn.md` |
 | **Skill** | Agent programmatic access | `~/.claude/skills/learn/SKILL.md` | `.claude/skills/learn/SKILL.md` |
-| **Script** | Hook wrapper (background) | `~/.claude/skills/learn/learn.sh` | - |
-| **Hook** | Auto-run at session end | `~/.claude/settings.json` | - |
+| **Hook Script** | Transcript parser for hooks | `~/.claude/skills/learn/learn-hook.js` | - |
 
 ### Output Files
 
@@ -205,9 +206,16 @@ Session Conversation
 ## Learnings
 
 <!-- Auto-captured from sessions by /learn -->
-- [PROCESS] Always run tests before committing
-- [ARCHITECTURE] Use repository pattern for data access
-- [CODE_STYLE] No comments unless explaining complex algorithms
+
+### PROCESS
+- Always run tests before committing
+- Use TDD workflow
+
+### ARCHITECTURE
+- Use repository pattern for data access
+
+### CODE_STYLE
+- No comments unless explaining complex algorithms
 ```
 
 ### CLAUDE.md (Claude Code)
@@ -218,8 +226,12 @@ Session Conversation
 ## Learnings
 
 <!-- Auto-captured from sessions by /learn -->
-- [PROCESS] Always run tests before committing
-- [CODE_STYLE] No comments in code unless explaining complex algorithms
+
+### PROCESS
+- Always run tests before committing
+
+### CODE_STYLE
+- No comments in code unless explaining complex algorithms
 ```
 
 ## Categories
@@ -242,7 +254,7 @@ learn-skill/
 ├── skill/
 │   └── learn/
 │       ├── SKILL.md          # Skill definition for agents
-│       └── learn.sh          # Hook script (runs in background)
+│       └── learn-hook.js     # Transcript hook parser
 └── README.md
 ```
 

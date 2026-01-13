@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/learn"
+            "command": "node ~/.claude/skills/learn/learn-hook.js"
           }
         ]
       }

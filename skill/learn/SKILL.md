@@ -1,6 +1,6 @@
 ---
 name: learn
-description: Extract learnings from session feedback and update AGENTS.md or CLAUDE.md
+description: Extract learnings from session feedback and update AGENTS.md or CLAUDE.md. Should I write to the project file (default) or the global file?
 ---
 
 # Learn Skill
@@ -11,14 +11,13 @@ Analyze the current session conversation, extract user feedback and corrections,
 
 | Mode | Trigger | Behavior |
 |------|---------|----------|
-| **Auto** | `/learn --auto` or hook | No confirmation, auto-apply HIGH + MEDIUM learnings |
 | **Interactive** | `/learn` | Confirm MEDIUM learnings before applying |
 
 ## When to Use This Skill
 
 - At the end of a session to capture learnings
 - When the user explicitly asks to save learnings
-- When invoked via Stop hook automatically (uses --auto mode)
+- For session-end automation, use `learn-hook.js` to parse transcripts
 
 ## Workflow
 
@@ -68,10 +67,34 @@ Scan the conversation for:
 
 ### Step 6: Format Learnings
 
-Format learnings as concise, actionable bullet points:
+Organize learnings by category as section headers with bullet points:
 
 ```markdown
-- [CATEGORY] Brief actionable rule (e.g., "Always run tests before committing")
+## Learnings
+
+### PROCESS
+- Always run tests before committing
+- Use TDD workflow
+
+### CODE_STYLE
+- No comments unless explaining complex algorithms
+- Use descriptive variable names
+
+### ARCHITECTURE
+- Use repository pattern for data access
+- Maintain component structure
+
+### UI_UX
+- Follow existing UX patterns
+- Use design system components
+
+### TESTING
+- Verify with lsp_diagnostics after edits
+- Run tests before marking tasks complete
+
+### TOOLING
+- Run specific build commands
+- Use background tasks for parallel execution
 ```
 
 Categories:
@@ -81,12 +104,6 @@ Categories:
 - `UI_UX` - Frontend patterns, design system
 - `TESTING` - Test strategy, verification
 - `TOOLING` - Tool usage, commands
-
-For learnings that need context, use:
-
-```markdown
-- [CATEGORY] Rule - Context: brief explanation
-```
 
 ### Step 7: Check for Duplicates
 
@@ -98,12 +115,7 @@ Before adding a learning:
 
 ### Step 8: Apply Learnings
 
-**Auto mode (`--auto` flag):**
-- Apply both HIGH and MEDIUM learnings automatically
-- No user confirmation required
-- Used by hooks for background processing
-
-**Interactive mode (no flag):**
+**Interactive mode:**
 - HIGH learnings: Apply automatically
 - MEDIUM learnings: Show proposed additions and ask "Apply these learnings? (y/n)"
 
@@ -123,7 +135,7 @@ If the file doesn't exist, create it with:
 
 If it exists but has no Learnings section, append the section.
 
-Then append new learnings under the Learnings section.
+Then append new learnings organized by category under the Learnings section, creating new category subsections as needed.
 
 #### For Claude Code (CLAUDE.md)
 
@@ -153,11 +165,9 @@ Output a brief summary:
 
 1. **Never persist LOW level feedback** - too context-specific
 2. **Always persist HIGH level feedback** - important process rules
-3. **Auto mode applies MEDIUM too** - when `--auto` flag is present, apply without confirmation
-4. **Deduplicate** - don't add learnings that already exist
-5. **Be concise** - learnings should be actionable bullet points, not paragraphs
-6. **Create sections if missing** - add Learnings section to existing files
-7. **Preserve existing content** - never overwrite, only append to Learnings section
-8. **Never modify ~/.claude/CLAUDE.md** - global file is read-only
-9. **Respect environment** - OpenCode -> AGENTS.md, Claude Code -> CLAUDE.md
-10. **No output in auto mode** - when running via hook, minimize output to avoid noise
+3. **Deduplicate** - don't add learnings that already exist
+4. **Be concise** - learnings should be actionable bullet points, not paragraphs
+5. **Create sections if missing** - add Learnings section to existing files
+6. **Preserve existing content** - never overwrite, only append to Learnings section
+7. **Never modify ~/.claude/CLAUDE.md** - global file is read-only
+8. **Respect environment** - OpenCode -> AGENTS.md, Claude Code -> CLAUDE.md
